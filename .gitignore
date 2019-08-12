@@ -33,5 +33,11 @@ msbuild.log
 msbuild.err
 msbuild.wrn
 
+# Terraform
+*.terraform
+*.tfstate
+*.backup
+secrets/
+
 # Custom
 !/build/
