@@ -58,6 +58,8 @@ namespace App
 
             //add api versioning
             services.AddApiVersioning();
+            services.AddMvcCore().AddApiExplorer()
+                .SetCompatibilityVersion(CompatibilityVersion.Latest);
 
             //register aws services
             var awsOptions = Configuration.GetAWSOptions();
