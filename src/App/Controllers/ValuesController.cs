@@ -24,8 +24,8 @@ namespace App.Controllers
         /// <returns>
         ///     Test Values
         /// </returns>
-        [ProducesResponseType(typeof(string[]), StatusCodes.Status200OK)]
         [HttpGet]
+        [ProducesResponseType(typeof(string[]), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<string>>> Get()
         {
             return await Task.FromResult(new string[] { "value1", "value2" });
