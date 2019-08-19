@@ -24,11 +24,11 @@ locals {
 ###########
 # Modules #
 ###########
-# module "cognito" {
-#   source = "./modules/cognito"
-#   tags = "${local.tags}"
-#   name = "${local.prefix}"
-# }
+module "cognito" {
+  source = "./modules/cognito"
+  tags = "${local.tags}"
+  name = "${local.prefix}"
+}
 
 module "ssm" {
   source = "./modules/ssm"
@@ -36,6 +36,7 @@ module "ssm" {
   prefix = "${local.ssm_prefix}"
 
   ui_app_url = "${var.ui_app_url}"
-  # cognito_authority_url = "${module.cognito.user_pool_endpoint}"
-  # cognito_client_id = "${module.cognito.user_pool_client_id}"
+  cognito_authority_url = "${module.cognito.user_pool_endpoint}"
+  cognito_user_pool_id = "${module.cognito.user_pool_id}"
+  cognito_client_id = "${module.cognito.user_pool_client_id}"
 }

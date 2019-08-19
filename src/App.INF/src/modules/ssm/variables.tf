@@ -4,12 +4,15 @@ variable "prefix" {
 variable "tags" {
   type = "map"
 }
-# variable "cognito_authority_url" {
-#   type = "string"
-# }
-# variable "cognito_client_id" {
-#   type = "string"
-# }
+variable "cognito_authority_url" {
+  type = "string"
+}
+variable "cognito_user_pool_id" {
+  type = "string"
+}
+variable "cognito_client_id" {
+  type = "string"
+}
 variable "ui_app_url" {
   type = "string"
 }

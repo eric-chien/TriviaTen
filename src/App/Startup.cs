@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Amazon.CognitoIdentityProvider;
+using Amazon.CognitoIdentity;
+using Amazon.DynamoDBv2;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
 using System;
+using App.Managers.Users;
 
 namespace App
 {
@@ -64,8 +68,11 @@ namespace App
             //register aws services
             var awsOptions = Configuration.GetAWSOptions();
             services.AddDefaultAWSOptions(awsOptions);
+            services.AddAWSService<IAmazonCognitoIdentityProvider>();
+            services.AddAWSService<IAmazonDynamoDB>();
 
             //register application services
+            services.AddSingleton<IUserManager, UserManager>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
