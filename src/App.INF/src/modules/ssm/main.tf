@@ -1,7 +1,7 @@
 resource "aws_ssm_parameter" "cognito_authority_url" {
     name = "${var.prefix}/cognito-authority-url"
     type = "SecureString"
-    value = "${var.cognito_authority_url}"
+    value = "https://${var.cognito_authority_url}"
     tags = "${var.tags}"
     overwrite = true
 }

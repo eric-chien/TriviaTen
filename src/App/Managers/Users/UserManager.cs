@@ -25,6 +25,7 @@ namespace App.Managers.Users
         {
             //TODO consider getting username from repository to make username entered match case of username in cognito (cognito usernames are case sensitive)
 
+            //Get JWT token from cognito
             return await PerformLoginAsync(loginRequest, cancellationToken).ConfigureAwait(false);
         }
 
@@ -35,13 +36,14 @@ namespace App.Managers.Users
 
             //Does user already exist? TODO check repo for existing user by username (case insensitive)
 
+            //Ensure password meets criteria
             if (!ValidPassword(newUser.Password))
                 throw new ArgumentException($"Password does not meet password criteria");
 
             //Create the user account in cognito
-            var cognitoId = await SignupUserAsync(newUser, cancellationToken).ConfigureAwait(false);
+            var signUpResult = await SignupUserAsync(newUser, cancellationToken).ConfigureAwait(false);
             
-            if (string.IsNullOrEmpty(cognitoId))
+            if (string.IsNullOrWhiteSpace(signUpResult.CognitoId))
                 return null;
 
             //Confirm the user in cognito to allow login (no email/sms confirmation required)
@@ -51,7 +53,7 @@ namespace App.Managers.Users
                 return null;
 
             //Create the user for TriviaTen domain
-            var createdUser = await CreateUserAsync(newUser, cognitoId, cancellationToken).ConfigureAwait(false);
+            var createdUser = await CreateUserAsync(newUser, signUpResult.CognitoId, cancellationToken).ConfigureAwait(false);
 
             return createdUser;
         }
@@ -110,7 +112,7 @@ namespace App.Managers.Users
             return await Task.FromResult(user).ConfigureAwait(false);
         }
 
-        private async Task<string> SignupUserAsync(NewUser newUser, CancellationToken cancellationToken)
+        private async Task<SignUpResult> SignupUserAsync(NewUser newUser, CancellationToken cancellationToken)
         {
             var signupRequest = new SignUpRequest
             {
@@ -118,12 +120,27 @@ namespace App.Managers.Users
                 Password = newUser.Password,
                 ClientId = _configuration[ConfigurationKeys.CognitoClientId]
             };
-            var response = await _cognitoClient.SignUpAsync(signupRequest, cancellationToken).ConfigureAwait(false);
 
-            if (response.HttpStatusCode != HttpStatusCode.OK)
-                return await Task.FromResult(string.Empty).ConfigureAwait(false);
+            try
+            {
+                var response = await _cognitoClient.SignUpAsync(signupRequest, cancellationToken).ConfigureAwait(false);
 
-            return await Task.FromResult(response.UserSub).ConfigureAwait(false);
+                return new SignUpResult
+                {
+                    CognitoId = response.UserSub
+                };
+            }
+            catch (UsernameExistsException)
+            {
+                return new SignUpResult
+                {
+                    FailureReason = "Username already exists"
+                };
+            }
+            catch (AmazonCognitoIdentityProviderException)
+            {
+                return null;
+            }
         }
 
         private async Task<bool> ConfirmUserAsync(string userName, CancellationToken cancellationToken)
@@ -136,15 +153,15 @@ namespace App.Managers.Users
             var response = await _cognitoClient.AdminConfirmSignUpAsync(confirmRequest);
 
             if (response.HttpStatusCode != HttpStatusCode.OK)
-                return await Task.FromResult(false).ConfigureAwait(false);
+                return false;
 
-            return await Task.FromResult(true).ConfigureAwait(false);
+            return true;
         }
 
         private bool ValidPassword(string password)
         {
-            //Passwords must be greater than 6 letters and contain an uppercase letter, lowercase letter, and a number.
-            if (password.Length < 7)
+            //Passwords must be at least 6 letters, contain an uppercase letter, lowercase letter, and a number.
+            if (password.Length < 6)
                 return false;
 
             if (!password.Any(char.IsUpper))

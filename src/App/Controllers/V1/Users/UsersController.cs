@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Amazon.CognitoIdentityProvider;
 using App.Managers.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 
 namespace App.Controllers.V1.Users
 {
     /// <summary>
-    ///     Test Controller
+    ///     Users controller
     /// </summary>
     [ApiVersion(Version)]
     [Route("v{version:apiVersion}/users")]
@@ -21,21 +19,17 @@ namespace App.Controllers.V1.Users
         private const string Version = "1";
 
         private readonly IUserManager _userManager;
-        private readonly IAmazonCognitoIdentityProvider _cognitoClient;
-        private readonly IConfiguration _configuration;
 
-        public UsersController(IUserManager userManager, IAmazonCognitoIdentityProvider cognitoClient, IConfiguration configuration)
+        public UsersController(IUserManager userManager)
         {
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
-            _cognitoClient = cognitoClient ?? throw new ArgumentNullException(nameof(cognitoClient));
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         /// <summary>
         ///     Initiates a login request to get a valid JWT token from cognito
         /// </summary>
         /// <response code="201">If the login was successful and a token was generated</response>
-        /// <response code="400">If the login was successful and a token was generated</response>
+        /// <response code="400">If the login was unsuccessful</response>
         /// <returns>
         ///     Jwt bearer token
         /// </returns>
@@ -78,6 +72,12 @@ namespace App.Controllers.V1.Users
             var model = Models.User.Convert(user);
 
             return model;
+        }
+
+        [HttpGet("locked")]
+        public async Task<ActionResult<string>> Locked (CancellationToken cancellationToken)
+        {
+            return await Task.FromResult("test");
         }
     }
 }
