@@ -34,17 +34,17 @@ namespace App.Managers.Users
         public static User Create(NewUser newUser, string cognitoId)
         {
             var user = new User(Guid.NewGuid(), newUser.Username, cognitoId, SupporterType.TypeCode.None, DateTime.UtcNow);
-            user.Apply(newUser);
 
             return user;
         }
 
-        public User Apply(NewUser newUser)
+        public User Apply(UpdatedUser updatedUser)
         {
-            if (newUser == null)
+            if (updatedUser == null)
                 return this;
 
-            Settings = newUser.Settings;
+            Username = updatedUser.Username;
+            Settings = updatedUser.Settings;
 
             return this;
         }

@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 
 namespace App.Managers.Users
 {
-    public interface IUserManager
+    public interface ICognitoUserManager
     {
         Task<Token> LoginAsync(LoginRequest loginRequest, CancellationToken cancellationToken);
-        Task<CreatedUser> CreateAsync(NewUser newUser, CancellationToken cancellationToken);
+        Task<SignUpResult> RegisterAsync(NewUser newUser, CancellationToken cancellationToken);
     }
 }

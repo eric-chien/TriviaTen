@@ -35,7 +35,8 @@ namespace App.Controllers.V1.Users
         /// </returns>
         [AllowAnonymous]
         [HttpPost("login")]
-        [ProducesResponseType(typeof(string[]), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Token), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<Token>> Login(LoginRequest loginRequest, CancellationToken cancellationToken)
         {
             var token = await _userManager.LoginAsync(loginRequest, cancellationToken);
@@ -47,7 +48,7 @@ namespace App.Controllers.V1.Users
         }
 
         /// <summary>
-        ///     Registers a new user in cognito as well as TriviaTen domain
+        ///     Registers a new user in cognito as well as in TriviaTen domain
         /// </summary>
         /// <response code="201">If the registration was successful</response>
         /// <response code="400">If the user parameters were invalid</response>
@@ -57,27 +58,24 @@ namespace App.Controllers.V1.Users
         /// </returns>
         [AllowAnonymous]
         [HttpPost("register")]
-        [ProducesResponseType(typeof(Models.User), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(Models.CreatedUser), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<Models.User>> Register(Models.NewUser newModel, CancellationToken cancellationToken)
+        public async Task<ActionResult<Models.CreatedUser>> Register(Models.NewUser newModel, CancellationToken cancellationToken)
         {
             var newUser = Models.NewUser.Convert(newModel);
 
-            var user = await _userManager.RegisterAsync(newUser, cancellationToken);
+            var createdUser = await _userManager.CreateAsync(newUser, cancellationToken);
 
-            if (user == null)
+            if (createdUser.ErrorMessage != null)
+                return BadRequest(createdUser);
+
+            if (createdUser == null)
                 return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             
-            var model = Models.User.Convert(user);
+            var model = Models.CreatedUser.Convert(createdUser);
 
             return model;
-        }
-
-        [HttpGet("locked")]
-        public async Task<ActionResult<string>> Locked (CancellationToken cancellationToken)
-        {
-            return await Task.FromResult("test");
         }
     }
 }

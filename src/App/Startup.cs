@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using App.Managers.Users;
 using Microsoft.IdentityModel.Logging;
+using App.Managers.Users.Cognito;
 
 namespace App
 {
@@ -65,6 +66,7 @@ namespace App
             services.AddAWSService<IAmazonDynamoDB>();
 
             //register application services
+            services.AddSingleton<ICognitoUserManager, CognitoUserManager>();
             services.AddSingleton<IUserManager, UserManager>();
         }
 

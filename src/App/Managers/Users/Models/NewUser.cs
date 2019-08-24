@@ -4,13 +4,11 @@
     {
         public string Username { get; set; }
         public string Password { get; set; }
-        public UserSettings Settings { get; set; }
 
-        public NewUser(string username, string password, UserSettings settings)
+        public NewUser(string username, string password)
         {
             Username = username;
             Password = password;
-            Settings = settings;
         }
     }
 }
