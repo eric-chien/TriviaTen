@@ -41,7 +41,7 @@ namespace App.Controllers.V1.Users
         {
             var token = await _userManager.LoginAsync(loginRequest, cancellationToken);
 
-            if (token == null || token.FailureReason != null)
+            if (token == null || token.ErrorMessage != null)
                 return BadRequest(token);
 
             return token;

@@ -13,8 +13,7 @@ namespace App.Managers.Users.Cognito
     {
         private readonly IAmazonCognitoIdentityProvider _cognitoClient;
         private readonly IConfiguration _configuration;
-
-
+        
         public CognitoUserManager(IAmazonCognitoIdentityProvider cognitoClient, IConfiguration configuration)
         {
             _cognitoClient = cognitoClient ?? throw new ArgumentNullException(nameof(cognitoClient));
@@ -49,17 +48,17 @@ namespace App.Managers.Users.Cognito
             {
                 return new Token
                 {
-                    FailureReason = "Invalid password"
+                    ErrorMessage = "Invalid password"
                 };
             }
             catch (UserNotFoundException)
             {
                 return new Token
                 {
-                    FailureReason = "User not found"
+                    ErrorMessage = "User not found"
                 };
             }
-            catch (AmazonCognitoIdentityProviderException)
+            catch (Exception)
             {
                 return null;
             }
@@ -69,19 +68,19 @@ namespace App.Managers.Users.Cognito
         {
             //Ensure password meets criteria
             if (!ValidPassword(newUser.Password))
-                return new SignUpResult { FailureReason = "Password does not meet password criteria" };
+                return new SignUpResult { ErrorMessage = "Password does not meet password criteria" };
 
             //Create the user account in cognito
             var signUpResult = await SignupUserAsync(newUser, cancellationToken).ConfigureAwait(false);
 
-            if (string.IsNullOrWhiteSpace(signUpResult.CognitoId))
-                return null;
+            if (string.IsNullOrWhiteSpace(signUpResult?.CognitoId))
+                return new SignUpResult { ErrorMessage = signUpResult?.ErrorMessage };
 
             //Confirm the user in cognito to allow login (no email/sms confirmation required)
             var successfulConfirm = await ConfirmUserAsync(newUser.Username, cancellationToken).ConfigureAwait(false);
 
             if (!successfulConfirm)
-                return null;
+                return new SignUpResult { ErrorMessage = "Failed to confirm user" };
 
             return signUpResult;
         }
@@ -111,12 +110,15 @@ namespace App.Managers.Users.Cognito
             {
                 return new SignUpResult
                 {
-                    FailureReason = "Username already exists"
+                    ErrorMessage = "Username already exists"
                 };
             }
-            catch (AmazonCognitoIdentityProviderException)
+            catch (Exception)
             {
-                return null;
+                return new SignUpResult
+                {
+                    ErrorMessage = "Failed to sign up user"
+                };
             }
         }
 

@@ -38,7 +38,7 @@ namespace App.Tests.Controllers.V1.Users
             {
                 var invalidToken = new Token
                 {
-                    FailureReason = "Failed to generate token"
+                    ErrorMessage = "Failed to generate token"
                 };
 
                 _userManagerMock.Setup(m => m.LoginAsync(It.IsAny<LoginRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(invalidToken);
@@ -74,7 +74,36 @@ namespace App.Tests.Controllers.V1.Users
                     Username = "test",
                     Password = "test"
                 };
-                //TODO Figure out why cannot access StatusCode off of StatusCodeResult object.
+
+                var response = await _sut.CreateAsync(newUser , CancellationToken.None);
+                var statusCodeResult = (StatusCodeResult)response.Result;
+
+                Assert.Equal(statusCodeResult.StatusCode, StatusCodes.Status500InternalServerError);
+
+                _userManagerMock.Verify(m => m.CreateAsync(It.IsAny<NewUser>(), It.IsAny<CancellationToken>()), Times.Once);
+            }
+
+            [Fact]
+            public async Task Login_Returns_BadRequest_When_UserHasErrorMessage()
+            {
+                var createdUser = new CreatedUser
+                {
+                    ErrorMessage = "Failed to create user"
+                };
+
+                _userManagerMock.Setup(m => m.CreateAsync(It.IsAny<NewUser>(), It.IsAny<CancellationToken>())).ReturnsAsync(createdUser);
+
+                var newUser = new App.Controllers.V1.Users.Models.NewUser
+                {
+                    Username = "test",
+                    Password = "test"
+                };
+
+                var response = await _sut.CreateAsync(newUser, CancellationToken.None);
+
+                Assert.IsType<BadRequestObjectResult>(response.Result);
+
+                _userManagerMock.Verify(m => m.CreateAsync(It.IsAny<NewUser>(), It.IsAny<CancellationToken>()), Times.Once);
             }
         }
     }
