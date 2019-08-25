@@ -52,10 +52,5 @@ namespace App.Managers.Users
 
             return new CreatedUser { User = user };
         }
-
-        public async Task TestAsync(AuthenticatedUser user, CancellationToken cancellation)
-        {
-            await Task.CompletedTask;
-        }
     }
 }

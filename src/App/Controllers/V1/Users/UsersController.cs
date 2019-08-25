@@ -37,7 +37,7 @@ namespace App.Controllers.V1.Users
         [HttpPost("login")]
         [ProducesResponseType(typeof(Token), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<Token>> Login(LoginRequest loginRequest, CancellationToken cancellationToken)
+        public async Task<ActionResult<Token>> LoginAsync(LoginRequest loginRequest, CancellationToken cancellationToken)
         {
             var token = await _userManager.LoginAsync(loginRequest, cancellationToken);
 
@@ -61,18 +61,18 @@ namespace App.Controllers.V1.Users
         [ProducesResponseType(typeof(Models.CreatedUser), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<Models.CreatedUser>> Register(Models.NewUser newModel, CancellationToken cancellationToken)
+        public async Task<ActionResult<Models.CreatedUser>> CreateAsync(Models.NewUser newModel, CancellationToken cancellationToken)
         {
             var newUser = Models.NewUser.Convert(newModel);
 
             var createdUser = await _userManager.CreateAsync(newUser, cancellationToken);
 
+            if (createdUser == null)
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+
             if (createdUser.ErrorMessage != null)
                 return BadRequest(createdUser);
 
-            if (createdUser == null)
-                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
-            
             var model = Models.CreatedUser.Convert(createdUser);
 
             return model;
